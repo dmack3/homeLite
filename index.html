@@ -1,0 +1,117 @@
+<!-- Important sources:
+
+http://www.fabiobiondi.com/blog/2014/02/html5-arduino-yun-and-angularjs-build-a-mobile-servo-controller/
+http://stackoverflow.com/questions/21535755/arduino-ethernet-access-control-allow-origin-issues
+http://stackoverflow.com/questions/16709373/angularjs-how-to-call-controller-function-from-outside-of-controller-component
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
+http://playground.arduino.cc/Hardware/Yun
+http://www.html5rocks.com/en/tutorials/cors/
+http://www.openhomeautomation.net/wireless-security-camera-arduino-yun/
+
+-->
+
+<!doctype html>
+<html lang="en" ng-app>
+    <head>
+        <meta charset="utf-8">
+        <title>HomeLite</title>
+        <meta name="viewport" content="width=device-width">
+        <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.css" />
+        <style>
+            #switchState,
+            #tempState {
+                font-weight: bold;
+                font-style: italic;
+            }
+        </style>
+        <script src="http://code.angularjs.org/1.2.6/angular.min.js"></script>
+        <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.js"></script>
+        <script>
+
+            function ArduinoCtrl($scope, $http) {
+                $scope.getD13 = function(msg) {
+                    $("#switchState").css({"font-style":"italic"}).html(msg);
+                    $http.get("http://98.118.61.162:80/arduino/digital/13/").
+                    success(function(data, status, headers, config) {
+                        $("#switchState").css({"font-style":"normal"});
+                        var i = (data).toString().slice(-1);
+                        if (i == "1") {
+                            $("#switchState").html("OFF");
+                        } else {
+                            $("#switchState").html("ON");
+                        }
+                    }).
+                    error(function(data, status, headers, config) {
+                        alert("Error retrieving data.");
+                    });
+                }
+                $scope.setD13 = function(value) {
+                    $("#switchState").css({"font-style":"italic"}).html("Sending command...");
+                    $http.get("http://98.118.61.162:80/arduino/digital/13/" + value).
+                    success(function(data, status, headers, config) {
+                        angular.element($('#ArduinoCtrl')).scope().getD13();
+                    });
+                    
+                }
+            }
+
+            // function ArduinoCtrl2($scope, $http) {
+            //     $scope.getA0 = function(msg) {
+            //         $("#tempState").css({"font-style":"italic"}).html(msg);
+            //         $http.get("http://98.118.61.162:80/arduino/analog/0/").
+            //         success(function(data, status, headers, config) {
+            //             var parsedData = (data).toString().split(" ").pop();
+            //             var voltage = parseInt(parsedData)/1024 * 5;
+            //             var degreesC = (voltage - 0.5) * 100;
+            //             var degreesF = (parseInt((degreesC * 9/5 + 32) * 10))/10;
+            //             degreesF += "&deg;F";
+            //             $("#tempState").css({"font-style":"normal"});
+            //             $("#tempState").html(degreesF);
+            //         }).
+            //         error(function(data, status, headers, config) {
+            //             alert("Error retrieving data.");
+            //         });
+            //     }
+            // }
+
+            $(document).ready(function(){
+                angular.element($('#ArduinoCtrl')).scope().getD13("Checking...");
+                // angular.element($('#ArduinoCtrl2')).scope().getA0("Checking...");
+            });
+
+        </script>
+
+    </head>
+    <body>
+        <div data-role="page" id="pageone">
+            <div data-role="header">
+                <h1>Remote Office Control</h1>
+            </div>
+
+            <div data-role="main" class="ui-content">
+                <p>Light: <span id="switchState"></span></p>
+                <div data-role="controlgroup" data-type="horizontal">
+                    <div data-role="navbar">
+                        <ul id="ArduinoCtrl" ng-controller="ArduinoCtrl">
+                            <li><a ng-click="setD13(0)" href="#" data-icon="home">Switch On</a></li>
+                            <li><a ng-click="setD13(1)" href="#" data-icon="home">Switch Off</a></li>
+                        </ul>
+                    </div>
+                </div><br>
+
+                <!-- <div id="ArduinoCtrl2" ng-controller="ArduinoCtrl2">
+                    <p>Room Temperature: <span id="tempState"></span></p>
+                </div><br> -->
+
+                <p>Last Detected Motion:</p>
+                <a href="http://www.mackstudiopro.com/homeLite/webcam_motion/capture.png"><img width="200" src="http://www.mackstudiopro.com/homeLite/webcam_motion/capture.png" alt=""></a>
+
+            </div>
+
+            <div data-role="footer">
+                <h1></h1>
+            </div>
+        </div> 
+    </body>
+</html>
